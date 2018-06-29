@@ -119,7 +119,6 @@ describe("Rxjs", () => {
                     {
                         ...observer,
                         next: val => {
-                            console.log("value", val);
                             result = [...result, val];
                         },
                         error: err => {
@@ -209,8 +208,6 @@ describe("Rxjs", () => {
                             console.log("error");
                         },
                         complete: () => {
-                            console.log("ac", actual);
-                            console.log("res", result);
                             expect(actual.length).equals(result.length);
                             expect(actual[0]).deep.equal(result[0]);
                             expect(actual[1]).deep.equal(result[1]);

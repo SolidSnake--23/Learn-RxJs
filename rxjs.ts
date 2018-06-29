@@ -1,4 +1,4 @@
-import {map, mapTo, filter, debug, startWith, concat} from "./rxjs.operators";
+import {map, mapTo, filter, startWith, concat} from "./rxjs.operators";
 
 export interface Observer<T> {
     next: (value: T) => void;
@@ -26,7 +26,6 @@ export class Observable<T>  {
     map = map;
     mapTo = mapTo;
     filter = filter;
-    debug = debug;
     startWith = startWith;
     concat = concat;
 }
@@ -90,7 +89,7 @@ export function fromPromise<T>(promise: Promise<T>): Observable<T> {
 
          promise.then(value => {
              observer.next(value);
-             observer.complete;
+             observer.complete();
          }).catch(error => {
              observer.error(error);
              observer.complete();

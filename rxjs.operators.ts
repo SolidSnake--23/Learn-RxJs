@@ -1,4 +1,4 @@
-import { Observable } from './rxjs';
+import { Observable, Producer, Subscriber, Observer } from './rxjs';
 // an observable is a function that accepts a producer in parameter and has a subscribe method
 // a producer is a function that throws/produce values and accepts an observer
 // an observer is just an object that has 3 functions: next, error, complete
@@ -47,7 +47,20 @@ export function map<T, U>(projection: Function, thisArgs?: Observable<T>): Obser
  * @returns {Observable}
  */
 export function mapTo<T>(constant: T): Observable<T> {
-    return null;
+
+    const mapToProducer : Producer<T> = (observer: Observer<any>): Subscriber => {
+        const newObserver = {
+            next() {
+                observer.next(constant)
+            },
+            error(){
+                observer.error("error");
+            },
+            complete: observer.complete
+        };
+        return this.subscribe(newObserver);
+    };
+    return new Observable(mapToProducer);
 }
 
 /**
@@ -61,26 +74,23 @@ export function mapTo<T>(constant: T): Observable<T> {
  * @returns {Observable}
  */
 export function filter<T>(predicate: Function, thisArgs?: Observable<T>): Observable<T> {
-    return null;
-}
+    thisArgs = thisArgs || this;
 
-/**
- * Transformation operators : do
- * Transparently perform actions or side-effects, such as logging.
- *
- * @see {@link https://www.learnrxjs.io/operators/utility/do.html } for examples.
- *
- * @param next
- * @param error
- * @param complete
- * @returns {Observable}
- */
-export function debug<T>(
-    next: Function = () => {},
-    error: Function = () => {},
-    complete: Function = () => {}
-): Observable<T> {
-    return null;
+    const filterProducer : Producer<T> = (observer: Observer<any>): Subscriber => {
+        const newObserver = {
+            next(value) {
+                if (predicate(value)) {
+                    observer.next(value);
+                }
+            },
+            error(){
+                observer.error("error");
+            },
+            complete: observer.complete
+        };
+        return thisArgs.subscribe(newObserver);
+    };
+    return new Observable(filterProducer);
 }
 
 /**
@@ -93,7 +103,20 @@ export function debug<T>(
  * @returns {Observable}
  */
 export function startWith<T>(...args: T[]): Observable<T> {
-    return null;
+    const startWithProducer : Producer<T> = (observer: Observer<any>): Subscriber => {
+        args.forEach(observer.next);
+        const newObserver = {
+            next(value) {
+                observer.next(value)
+            },
+            error(){
+                observer.error("error");
+            },
+            complete: observer.complete
+        };
+        return this.subscribe(newObserver);
+    };
+    return new Observable(startWithProducer);
 }
 
 /**
