@@ -1,3 +1,5 @@
+import {map, mapTo, filter, debug, startWith, concat} from "./rxjs.operators";
+
 export interface Observer<T> {
     next: (value: T) => void;
     error: (err: string) => void;
@@ -20,6 +22,13 @@ export class Observable<T>  {
     subscribe(observer: Observer<T>): Subscriber {
        return this.producer(observer);
     }
+
+    map = map;
+    mapTo = mapTo;
+    filter = filter;
+    debug = debug;
+    startWith = startWith;
+    concat = concat;
 }
 
 
@@ -77,7 +86,21 @@ export function of(...args: any[]): Observable<any> {
  * @returns {Observable}
  */
 export function fromPromise<T>(promise: Promise<T>): Observable<T> {
-    return null;
+     const promiseProducer : Producer<T> = (observer: Observer<T>): Subscriber  => {
+
+         promise.then(value => {
+             observer.next(value);
+             observer.complete;
+         }).catch(error => {
+             observer.error(error);
+             observer.complete();
+         });
+
+        return {
+            unsubscribe: () => {}
+        }
+    };
+    return new Observable<T>(promiseProducer);
 }
 
 /**
@@ -90,5 +113,5 @@ export function fromPromise<T>(promise: Promise<T>): Observable<T> {
  * @returns {Observable}
  */
 export function from(input): Observable<any> {
-    return of(...input);
+    return (input instanceof Promise) ? fromPromise(input) : of(...input);
 }

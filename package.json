@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "mocha -r ts-node/register ./**/*.spec.ts"
+    "start": "mocha -r ts-node/register ./rxjs.spec.ts"
   },
   "author": "Florian PASTEUR",
   "license": "MIT",

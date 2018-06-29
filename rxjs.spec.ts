@@ -1,6 +1,7 @@
 import {expect} from 'chai';
 import {describe, it, beforeEach} from "mocha";
-import {interval, Observable, Observer} from "./rxjs";
+import {from, fromPromise, interval, Observable, Observer, of} from "./rxjs";
+import {filter, map} from "./rxjs.operators";
 
 describe("Rxjs", () => {
     let observer: Observer<any>;
@@ -36,26 +37,24 @@ describe("Rxjs", () => {
                 }, 600);
             });
         });
-       /* describe("of :", () => {
+        describe("of :", () => {
             it("should emit a sequence of numbers", done => {
-                const source$: Observable = of(1, 2, 3, 4, 5);
+                const source$: Observable<number> = of(1, 2, 3, 4, 5);
                 let result: number[] = [];
                 const actual: number[] = [1, 2, 3, 4, 5];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
-                        },
-                        () => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
-                );
+                    });
             });
 
             it("should emit an object, array, and function", done => {
-                const source$: Observable = of(
+                const source$: Observable<any> = of(
                     {name: "Brian"},
                     [1, 2, 3],
                     function hello() {
@@ -70,67 +69,67 @@ describe("Rxjs", () => {
                         return "Hello";
                     }
                 ];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
-                        },
-                        () => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        complete: () => {
                             expect(actual.length).equals(result.length);
                             expect(actual[0]).deep.equal(result[0]);
                             expect(actual[1]).deep.equal(result[1]);
                             expect(actual[2]()).deep.equal(result[2]());
                             done();
                         }
-                    )
+                    }
                 );
             });
         });
-
         describe("fromPromise :", () => {
             it("should converts an promise to an Observable", done => {
                 const actual: string = "Hello World!";
                 const promise: Promise<string> = new Promise(resolve =>
                     resolve(actual)
                 );
-                const source: Observable = fromPromise(promise);
+                const source: Observable<any> = fromPromise(promise);
                 let result: string;
-                const subscribe = source.subscribe(
-                    observer(
-                        val => {
+                source.subscribe(
+                    {
+                        ...observer,
+                        next: val => {
                             result = val;
-                        },
-                        err => {
+                        }
+                        ,
+                        error: err => {
                             console.log("error", err);
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
         });
-
         describe("from :", () => {
             it("should converts an array to an Observable", done => {
-                const source$: Observable = from([1, 2, 3, 4, 5]);
+                const source$: Observable<number> = from([1, 2, 3, 4, 5]);
                 let result: number[] = [];
                 const actual: number[] = [1, 2, 3, 4, 5];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => {
                             console.log("value", val);
                             result = [...result, val];
                         },
-                        err => {
+                        error: err => {
                             console.log("error", err);
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
 
@@ -139,21 +138,23 @@ describe("Rxjs", () => {
                 const promise: Promise<string> = new Promise(resolve =>
                     resolve(actual)
                 );
-                const source$: Observable = from(promise);
+                const source$: Observable<string> = from(promise);
                 let result: string;
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => {
                             result = val;
-                        },
-                        () => {
+                        }
+                        ,
+                        error: () => {
                             console.log("error");
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
 
@@ -172,21 +173,22 @@ describe("Rxjs", () => {
                     "d"
                 ];
                 const value: string = actual.join("");
-                const source$: Observable = from(value);
+                const source$: Observable<string> = from(value);
                 let result: string[] = [];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => {
                             result = [...result, val];
                         },
-                        err => {
+                        error: err => {
                             console.log("error");
                         },
-                        () => {
+                        complete: () => {
                             expect(actual.length).equals(result.length);
                             done();
                         }
-                    )
+                    }
                 );
             });
 
@@ -194,18 +196,19 @@ describe("Rxjs", () => {
                 const map: Map<number, string> = new Map();
                 map.set(1, "Hi");
                 map.set(2, "Bye");
-                const source$: Observable = from(map);
+                const source$: Observable<any> = from(map);
                 const actual: any[][] = [[1, "Hi"], [2, "Bye"]];
                 let result: any[][] = [];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => {
                             result = [...result, val];
                         },
-                        err => {
+                        error: err => {
                             console.log("error");
                         },
-                        () => {
+                        complete: () => {
                             console.log("ac", actual);
                             console.log("res", result);
                             expect(actual.length).equals(result.length);
@@ -213,31 +216,33 @@ describe("Rxjs", () => {
                             expect(actual[1]).deep.equal(result[1]);
                             done();
                         }
-                    )
+                    }
                 );
             });
-        });*/
+        });
     });
-   /* describe("Operators", () => {
-        describe.only("map :", () => {
+
+    describe("Operators", () => {
+        describe("map :", () => {
             it("should add 10 to each number", done => {
-                const source$: Observable = from([1, 2, 3, 4, 5]).map(val => val + 10);
+                const source$: Observable<number> = from([1, 2, 3, 4, 5]).map(val => val + 10);
                 let result: number[] = [];
                 const actual: number[] = [11, 12, 13, 14, 15];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        error: () => {
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
             it("should map to single property", done => {
-                const from$: Observable = from([
+                const from$: Observable<Object> = from([
                     {name: "Joe", age: 30},
                     {name: "Frank", age: 20},
                     {
@@ -245,64 +250,67 @@ describe("Rxjs", () => {
                         age: 50
                     }
                 ]);
-                const source$: Observable = map(person => person.name, from$);
+                const source$: Observable<string> = map(person => person.name, from$);
                 let result: string[] = [];
                 const actual: string[] = ["Joe", "Frank", "Ryan"];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        error: () => {
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
         });
 
         describe("mapTo :", () => {
             it('should every emission to "a" ', done => {
-                const source$: Observable = from([1, 2, 3, 4, 5]).mapTo("a");
+                const source$: Observable<string> = from([1, 2, 3, 4, 5]).mapTo("a");
                 let result: string[] = [];
                 const actual: string[] = ["a", "a", "a", "a", "a"];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        error: () => {
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
         });
 
         describe("filter :", () => {
             it("should filter for even numbers", done => {
-                const source$: Observable = from([1, 2, 3, 4, 5]).filter(
+                const source$: Observable<number> = from([1, 2, 3, 4, 5]).filter(
                     num => num % 2 === 0
                 );
                 let result: number[] = [];
                 const actual: number[] = [2, 4];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        error: () => {
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
 
             it("should filter objects based on property", done => {
-                const from$: Observable = from([
+                const from$: Observable<Object> = from([
                     {name: "Joe", age: 30},
                     {name: "Frank", age: 20},
                     {
@@ -310,60 +318,63 @@ describe("Rxjs", () => {
                         age: 50
                     }
                 ]);
-                const source$: Observable = filter(
+                const source$: Observable<string> = filter(
                     person => person.age >= 30,
                     from$
                 ).map(person => person.name);
                 let result: string[] = [];
                 const actual: string[] = ["Joe", "Ryan"];
-                const subscribe = source$.subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
+                source$.subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        error: () => {
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
         });
 
         describe("startWith :", () => {
             it("should start with on number sequence", done => {
-                const source$: Observable = from([1, 2, 3, 4, 5]);
+                const source$: Observable<number> = from([1, 2, 3, 4, 5]);
                 let result: number[] = [];
                 const actual: number[] = [0, 1, 2, 3, 4, 5];
-                const subscribe = source$.startWith(0).subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
+                source$.startWith(0).subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        error: () => {
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
 
             it("should start with multiple values", done => {
-                const source$: Observable = from([1, 2, 3, 4, 5]);
+                const source$: Observable<number> = from([1, 2, 3, 4, 5]);
                 let result: number[] = [];
                 const actual: number[] = [-1, 0, 1, 2, 3, 4, 5];
-                const subscribe = source$.startWith(-1, 0).subscribe(
-                    observer(
-                        val => (result = [...result, val]),
-                        () => {
+                source$.startWith(-1, 0).subscribe(
+                    {
+                        ...observer,
+                        next: val => (result = [...result, val]),
+                        error: () => {
                         },
-                        () => {
+                        complete: () => {
                             expect(actual).deep.equals(result);
                             done();
                         }
-                    )
+                    }
                 );
             });
         });
-    });*/
+    });
 });
