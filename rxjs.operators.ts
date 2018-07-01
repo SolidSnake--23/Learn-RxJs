@@ -131,3 +131,18 @@ export function startWith<T>(...args: T[]): Observable<T> {
 export function concat<T>(...observables: Observable<T>[]): Observable<T> {
     return null;
 }
+
+
+export function merge<T>(observable: Observable<T>): Observable<T> {
+    const mergeProducer = (observer) => {
+        const subscriber_1 = this.subscribe(observer);
+        const subscriber_2 = observable.subscribe(observer);
+        return {
+            unsubscribe: () => {
+                subscriber_1.unsubscribe();
+                subscriber_2.unsubscribe();
+            }
+        }
+    };
+    return new Observable<T>(mergeProducer);
+}

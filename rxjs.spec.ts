@@ -373,5 +373,28 @@ describe("Rxjs", () => {
                 );
             });
         });
+
+        describe('merge:', () => {
+            it('should merge two observable', done => {
+                const alphabet = ['A', 'B', 'C', 'D'];
+                const observable_A = interval(10);
+                const observable_B = interval(10).map(i => alphabet[i]);
+                let result = [];
+                const actual = [0, 'A', 1, 'B', 2, 'C', 3, 'D'];
+
+                const subscriber = observable_A.merge(observable_B).subscribe({
+                    ...observer,
+                    next: val => (result = [...result, val])
+                });
+
+                const id = setTimeout(() => {
+                    subscriber.unsubscribe();
+                    clearTimeout(id);
+                    expect(actual).deep.equals(result);
+                    done();
+                }, 40);
+
+            })
+        })
     });
 });
