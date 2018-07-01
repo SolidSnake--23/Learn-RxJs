@@ -1,4 +1,4 @@
-import { Observable, Producer, Subscriber, Observer } from './rxjs';
+import {Observable, Producer, Subscriber, Observer} from './rxjs';
 // an observable is a function that accepts a producer in parameter and has a subscribe method
 // a producer is a function that throws/produce values and accepts an observer
 // an observer is just an object that has 3 functions: next, error, complete
@@ -22,19 +22,55 @@ import { Observable, Producer, Subscriber, Observer } from './rxjs';
 export function map<T, U>(projection: Function, thisArgs?: Observable<T>): Observable<U> {
     thisArgs = thisArgs || this;
 
-    function mapProducer(observer){
+    function mapProducer(observer) {
         const newObserver = {
-            next(value){
+            next(value) {
                 observer.next(projection(value))
             },
-            error(){
+            error() {
                 observer.error("error");
             },
             complete: observer.complete
         };
         return thisArgs.subscribe(newObserver)
     }
+
     return new Observable(mapProducer);
+}
+
+/**
+ * Filtering operators : Take
+ * Emit provided number of values before completing.
+ *
+ * @see {@link https://www.learnrxjs.io/operators/filtering/take.html } for examples.
+ *
+ * @param size {number}
+ * @returns {Observable}
+ */
+export function take<T>(size: number): Observable<T> {
+
+    const takeProducer = (observer) => {
+        let i = size;
+        let subscriber: Subscriber;
+        const newObserver = {
+            next(value) {
+                observer.next(value);
+                if (--i == 0) {
+                    this.complete();
+                    subscriber.unsubscribe();
+                }
+            },
+            error() {
+                observer.error("error");
+            },
+            complete: observer.complete
+        };
+
+        subscriber = this.subscribe(newObserver);
+        return subscriber;
+    };
+
+    return new Observable<T>(takeProducer);
 }
 
 /**
@@ -48,12 +84,12 @@ export function map<T, U>(projection: Function, thisArgs?: Observable<T>): Obser
  */
 export function mapTo<T>(constant: T): Observable<T> {
 
-    const mapToProducer : Producer<T> = (observer: Observer<any>): Subscriber => {
+    const mapToProducer: Producer<T> = (observer: Observer<any>): Subscriber => {
         const newObserver = {
             next() {
                 observer.next(constant)
             },
-            error(){
+            error() {
                 observer.error("error");
             },
             complete: observer.complete
@@ -76,14 +112,14 @@ export function mapTo<T>(constant: T): Observable<T> {
 export function filter<T>(predicate: Function, thisArgs?: Observable<T>): Observable<T> {
     thisArgs = thisArgs || this;
 
-    const filterProducer : Producer<T> = (observer: Observer<any>): Subscriber => {
+    const filterProducer: Producer<T> = (observer: Observer<any>): Subscriber => {
         const newObserver = {
             next(value) {
                 if (predicate(value)) {
                     observer.next(value);
                 }
             },
-            error(){
+            error() {
                 observer.error("error");
             },
             complete: observer.complete
@@ -103,13 +139,13 @@ export function filter<T>(predicate: Function, thisArgs?: Observable<T>): Observ
  * @returns {Observable}
  */
 export function startWith<T>(...args: T[]): Observable<T> {
-    const startWithProducer : Producer<T> = (observer: Observer<any>): Subscriber => {
+    const startWithProducer: Producer<T> = (observer: Observer<any>): Subscriber => {
         args.forEach(observer.next);
         const newObserver = {
             next(value) {
                 observer.next(value)
             },
-            error(){
+            error() {
                 observer.error("error");
             },
             complete: observer.complete
@@ -120,19 +156,14 @@ export function startWith<T>(...args: T[]): Observable<T> {
 }
 
 /**
- * Combinations operators : concat
- * Concatenates multiple Observables together by sequentially emitting their values, one Observable after the other.
+ * Combinations operators : merge
+ * Merge two observable and emit whener
  *
- * @see {@link https://www.learnrxjs.io/operators/combination/concat.html} for examples.
+ * @see {@link https://www.learnrxjs.io/operators/combination/merge.html} for examples.
  *
- * @param args {Array}
+ * @param observable {Observable}
  * @returns {Observable}
  */
-export function concat<T>(...observables: Observable<T>[]): Observable<T> {
-    return null;
-}
-
-
 export function merge<T>(observable: Observable<T>): Observable<T> {
     const mergeProducer = (observer) => {
         const subscriber_1 = this.subscribe(observer);

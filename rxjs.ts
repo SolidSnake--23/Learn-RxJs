@@ -1,4 +1,4 @@
-import {map, mapTo, filter, startWith, concat, merge} from "./rxjs.operators";
+import {map, mapTo, filter, startWith, merge, take} from "./rxjs.operators";
 
 export interface Observer<T> {
     next: (value: T) => void;
@@ -27,8 +27,8 @@ export class Observable<T>  {
     mapTo = mapTo;
     filter = filter;
     startWith = startWith;
-    concat = concat;
     merge = merge;
+    take = take;
 }
 
 

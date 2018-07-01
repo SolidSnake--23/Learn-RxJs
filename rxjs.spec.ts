@@ -265,6 +265,29 @@ describe("Rxjs", () => {
             });
         });
 
+        describe('take :', () => {
+            it('should complete observable after N emits', done => {
+                const observable = interval(10).take(3);
+                let result = [];
+                let completeCalled = false;
+                const actual = [0, 1, 2];
+
+                observable.subscribe({
+                    ...observer,
+                    next: val => (result = [...result, val]),
+                    complete: () => completeCalled = true
+                });
+
+                const id = setTimeout(() => {
+                    clearTimeout(id);
+                    expect(actual).deep.equals(result);
+                    expect(completeCalled).to.be.true;
+                    done();
+                }, 50);
+            });
+        });
+
+
         describe("mapTo :", () => {
             it('should every emission to "a" ', done => {
                 const source$: Observable<string> = from([1, 2, 3, 4, 5]).mapTo("a");
@@ -374,7 +397,7 @@ describe("Rxjs", () => {
             });
         });
 
-        describe('merge:', () => {
+        describe('merge :', () => {
             it('should merge two observable', done => {
                 const alphabet = ['A', 'B', 'C', 'D'];
                 const observable_A = interval(10);
