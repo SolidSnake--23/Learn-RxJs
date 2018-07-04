@@ -1,4 +1,4 @@
-import {Observable, Producer, Subscriber, Observer} from './rxjs';
+import {Observable, Producer, Subscriber, Observer, from} from './rxjs';
 // an observable is a function that accepts a producer in parameter and has a subscribe method
 // a producer is a function that throws/produce values and accepts an observer
 // an observer is just an object that has 3 functions: next, error, complete
@@ -20,7 +20,15 @@ import {Observable, Producer, Subscriber, Observer} from './rxjs';
 // from("1", 2, 3).map((x)=> x);
 // "1", 2, 3 => subscribe
 export function map<T, U>(projection: Function, thisArgs?: Observable<T>): Observable<U> {
-    return null;
+    thisArgs = thisArgs || this;
+
+    return new Observable<U>((observer: Observer<U>): Subscriber => {
+        return thisArgs.subscribe({
+            next: (value: T) => observer.next(projection(value)),
+            error: observer.error,
+            complete: observer.complete
+        });
+    });
 }
 
 /**
@@ -33,7 +41,21 @@ export function map<T, U>(projection: Function, thisArgs?: Observable<T>): Obser
  * @returns {Observable}
  */
 export function take<T>(size: number): Observable<T> {
-return null;
+    return new Observable<T>((observer: Observer<T>): Subscriber => {
+        return this.subscribe({
+            next: (value: T) => {
+                if(size > 0) {
+                    observer.next(value);
+                    size--;
+                }
+                else {
+                    observer.complete();
+                }
+            },
+            error: observer.error,
+            complete: observer.complete
+        });
+    });
 }
 
 /**
@@ -46,7 +68,14 @@ return null;
  * @returns {Observable}
  */
 export function mapTo<T>(constant: T): Observable<T> {
-    return null;
+
+    return new Observable<T>((observer: Observer<T>): Subscriber => {
+        return this.subscribe({
+            next: () => observer.next(constant),
+            error: observer.error,
+            complete: observer.complete
+        });
+    });
 }
 /**
  * Filtering operators : filter
@@ -59,7 +88,18 @@ export function mapTo<T>(constant: T): Observable<T> {
  * @returns {Observable}
  */
 export function filter<T>(predicate: Function, thisArgs?: Observable<T>): Observable<T> {
-    return null;
+    thisArgs = thisArgs || this;
+    return new Observable<T>((observer: Observer<T>): Subscriber => {
+        return thisArgs.subscribe({
+            next: (value: T) => {
+                if(predicate(value)) {
+                    observer.next(value);
+                }
+            },
+            error: observer.error,
+            complete: observer.complete
+        });
+    });
 }
 
 /**
@@ -72,7 +112,12 @@ export function filter<T>(predicate: Function, thisArgs?: Observable<T>): Observ
  * @returns {Observable}
  */
 export function startWith<T>(...args: T[]): Observable<T> {
-    return null;
+    return new Observable<T>((observer: Observer<T>): Subscriber => {
+        for (let arg of args) {
+            observer.next(arg);
+        }
+        return this.subscribe(observer);
+    });
 }
 
 /**
@@ -85,5 +130,16 @@ export function startWith<T>(...args: T[]): Observable<T> {
  * @returns {Observable}
  */
 export function merge<T>(observable: Observable<T>): Observable<T> {
-    return null;
+    return new Observable<T>((observer: Observer<T>): Subscriber => {
+
+
+
+        return this.subscribe({
+            next: (value: T) => {
+                observer.next(value);
+            },
+            error: observer.error,
+            complete: observer.complete
+        });
+    });
 }

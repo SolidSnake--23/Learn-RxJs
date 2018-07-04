@@ -1,6 +1,9 @@
 import {map, mapTo, filter, startWith, merge, take} from "./rxjs.operators";
 
 export interface Observer<T> {
+    next: (value: T) => void;
+    error: (error: string) => void;
+    complete: () => void;
 }
 
 export interface Subscriber {
@@ -11,13 +14,13 @@ export type Unsubscribe = () => void;
 export type Producer<T> = (observer: Observer<T>) => Subscriber;
 
 
-export class Observable<T>  {
+export class Observable<T> {
 
-    constructor(something) {
+    constructor(private producer: Producer<T>) {
     }
 
-    subscribe(something): Subscriber {
-        return null;
+    subscribe(observer: Observer<T>): Subscriber {
+        return this.producer(observer);
     }
 
     map = map;
@@ -39,7 +42,22 @@ export class Observable<T>  {
  * @returns {Observable}
  */
 export function interval(period: number): Observable<number> {
-    return null;
+
+    const intervalProducer: Producer<number> = (observer: Observer<number>): Subscriber => {
+
+        let i = 0;
+        observer.next(i++);
+        const idInterval = setInterval(() => observer.next(i++), period);
+
+        return {
+            unsubscribe: () => {
+                clearInterval(idInterval);
+                observer.complete();
+            }
+        };
+    };
+
+    return new Observable<number>(intervalProducer);
 }
 
 /**
@@ -52,7 +70,18 @@ export function interval(period: number): Observable<number> {
  * @returns {Observable}
  */
 export function of(...args: any[]): Observable<any> {
-    return null;
+
+    const intervalProducer: Producer<any> = (observer: Observer<any>): Subscriber => {
+        for (let arg of args) {
+            observer.next(arg);
+        }
+        observer.complete();
+        return {
+            unsubscribe: () => void(0)
+        }
+    };
+
+    return new Observable<any>(intervalProducer);
 }
 
 /**
@@ -65,7 +94,17 @@ export function of(...args: any[]): Observable<any> {
  * @returns {Observable}
  */
 export function fromPromise<T>(promise: Promise<T>): Observable<T> {
-    return null;
+    return new Observable<T>((observer: Observer<T>): Subscriber => {
+
+        promise
+            .then(resp => {
+                observer.next(resp);
+                observer.complete();
+            });
+        return {
+            unsubscribe: () => void(0)
+        }
+    });
 }
 
 /**
@@ -78,5 +117,11 @@ export function fromPromise<T>(promise: Promise<T>): Observable<T> {
  * @returns {Observable}
  */
 export function from(input): Observable<any> {
-    return null;
+    if (input instanceof Promise) {
+        return fromPromise(input);
+    }
+    else {
+        return of(...input);
+    }
+
 }
